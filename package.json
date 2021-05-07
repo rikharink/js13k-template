@@ -6,25 +6,36 @@
   "scripts": {
     "clean": "rimraf dist/*",
     "build": "run-s clean build:*",
-    "build:ts": "esbuild src/scripts/game.ts --bundle --format=iife --loader:.webp=dataurl | terser --config-file ./terser.config.json -o dist/game.js",
+    "build:lint": "yarn lint",
+    "build:ts": "cross-env NODE_ENV=production node esbuild.config.mjs | terser --config-file ./terser.config.json -o dist/game.js",
     "build:html": "html-inline -i src/index.html -b dist | html-minifier -c html-minifier.config.json -o dist/index.html",
     "build:zip": "ect -zip dist/index.html",
+    "build:move": "shx mv dist/index.zip release/game.zip",
     "build:size": "node tools/zipSize.js",
     "start": "npm-run-all -s clean -p dev:*",
-    "dev:ts": "esbuild src/scripts/game.ts --bundle --format=iife --loader:.webp=dataurl --sourcemap --outfile=dist/game.js --watch",
-    "dev:html": "html-inline -i src/index.html -o dist/index.html -b dist",
+    "dev:ts": "cross-env NODE_ENV=development node esbuild.config.mjs",
+    "dev:html": "shx cp src/index.html dist/index.html",
     "dev:serve": "browser-sync dist --watch --host 0.0.0.0 --https",
-    "dev:watch_img": "chokidar src/img -d 0 -c 'npm run dev:ts'"
+    "dev:watch_html": "chokidar src/index.html -d 0 -c \"yarn dev:html\"",
+    "dev:watch_img": "chokidar src/img -d 0 -c \"yarn dev:ts\"",
+    "lint": "npm-run-all -s lint:*",
+    "lint:ts": "tsc -noEmit"
   },
   "devDependencies": {
     "browser-sync": "^2.26.14",
     "chokidar-cli": "^2.1.0",
     "esbuild": "^0.11.18",
+    "esbuild-plugin-glsl": "^1.0.3",
     "html-inline": "^1.2.0",
     "html-minifier": "^4.0.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
+    "shx": "^0.3.3",
     "terser": "^5.7.0",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "yarn": "^1.22.10"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3"
   }
 }

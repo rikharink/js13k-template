@@ -24,7 +24,7 @@ SOFTWARE.
 
 const fs = require("fs");
 // report zip size and remaining bytes
-const size = fs.statSync("dist/index.zip").size;
+const size = fs.statSync("release/game.zip").size;
 const limit = 1024 * 13;
 const remaining = limit - size;
 const percentage = Math.round((remaining / limit) * 100 * 100) / 100;

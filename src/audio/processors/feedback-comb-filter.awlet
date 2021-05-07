@@ -1,0 +1,62 @@
+registerProcessor(
+  "fbcf",
+  class extends AudioWorkletProcessor {
+    static get parameterDescriptors() {
+      return [
+        {
+          name: "delayTime",
+          defaultValue: 0.1,
+          minValue: 0,
+          maxValue: 1,
+        },
+        {
+          name: "feedback",
+          defaultValue: 0.5,
+          minValue: 0,
+          maxValue: 0.9999,
+        },
+      ];
+    }
+
+    constructor(options) {
+      super(options);
+      this.delayBuffer = new Float32Array(sampleRate);
+    }
+
+    getParameter(parameter, index) {
+      if (parameter.length > 1) {
+        return parameter[index];
+      } else {
+        return parameter[0];
+      }
+    }
+
+    process(inputs, outputs, parameters) {
+      const input = inputs[0];
+      const output = outputs[0];
+      const delayLength = this.delayBuffer.length;
+      const inputChannel = input[0];
+      const outputChannel = output[0];
+      const delayTimeParam = parameters.delayTime;
+      const feedbackParam = parameters.feedback;
+      inputChannel.forEach((value, index) => {
+        const delayTime = this.getParameter(delayTimeParam, index);
+        const feedback = this.getParameter(feedbackParam, index);
+        const delaySamples = Math.floor(delayTime * sampleRate);
+        const currentIndex = (currentFrame + index) % delayLength;
+        const delayedIndex =
+          (currentFrame + index + delaySamples) % delayLength;
+
+        // the current value to output
+        const currentValue = this.delayBuffer[currentIndex];
+
+        // write the current value to the delayBuffer in the future
+        this.delayBuffer[delayedIndex] = value + currentValue * feedback;
+        // set all of the output channels to the same value
+        outputChannel[index] = delaySamples > 0 ? currentValue : value;
+      });
+      // keep the processing alive
+      return true;
+    }
+  }
+);

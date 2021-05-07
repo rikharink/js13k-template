@@ -5,7 +5,10 @@
   "compress": {
     "keep_fargs": false,
     "passes": 5,
-    "pure_funcs": ["assert", "debug"],
+    "pure_funcs": [
+      "assert",
+      "debug"
+    ],
     "pure_getters": true,
     "unsafe": true,
     "unsafe_arrows": true,
@@ -14,8 +17,8 @@
     "unsafe_methods": true
   },
   "mangle": {
-    "properties": {
-      "regex": "/^_/"
-    }
+    "properties": true,
+    "module": true,
+    "toplevel": true
   }
 }
