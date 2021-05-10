@@ -1,6 +1,6 @@
 import { build } from "esbuild";
 import { glsl } from "esbuild-plugin-glsl";
-import awlet from "./plugins/audio-worklet-plugin.mjs";
+import { workerPlugin } from "./plugins/worker-plugin.mjs";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const define = {
@@ -17,7 +17,7 @@ build({
   define,
   plugins: [
     glsl({ minify: !isDevelopment }),
-    awlet({
+    workerPlugin({
       minify: !isDevelopment,
       minifyOptions: {
         ecma: 9,
@@ -33,11 +33,6 @@ build({
           unsafe_comps: true,
           unsafe_math: true,
           unsafe_methods: true,
-        },
-        mangle: {
-          properties: true,
-          module: true,
-          toplevel: true,
         },
       },
     }),

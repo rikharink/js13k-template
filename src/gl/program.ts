@@ -6,43 +6,42 @@ import {
 } from "./constants";
 
 export function createShader(
-  gl: WebGL2RenderingContext,
+  ctx: WebGL2RenderingContext,
   type: number,
   source: string
 ) {
-  let shader = gl.createShader(type);
+  let shader = ctx.createShader(type);
   if (!shader) throw Error("Couldn't create shader");
 
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
+  ctx.shaderSource(shader, source);
+  ctx.compileShader(shader);
 
-  var success = gl.getShaderParameter(shader, COMPILE_STATUS);
+  var success = ctx.getShaderParameter(shader, COMPILE_STATUS);
   if (success) {
     return shader;
   }
-  gl.deleteShader(shader);
+  ctx.deleteShader(shader);
   throw Error("Couldn't create shader");
 }
 
 export function createProgram(
-  gl: WebGL2RenderingContext,
+  ctx: WebGL2RenderingContext,
   vertexSource: string,
   fragmentSource: string
 ) {
-  const vertexShader = createShader(gl, VERTEX_SHADER, vertexSource);
-  const fragmentShader = createShader(gl, FRAGMENT_SHADER, fragmentSource);
+  const vertexShader = createShader(ctx, VERTEX_SHADER, vertexSource)!;
+  const fragmentShader = createShader(ctx, FRAGMENT_SHADER, fragmentSource)!;
+  const program = ctx.createProgram()!;
+  ctx.attachShader(program, vertexShader);
+  ctx.attachShader(program, fragmentShader);
+  ctx.linkProgram(program);
 
-  const program = gl.createProgram()!;
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-
-  const success = gl.getProgramParameter(program, LINK_STATUS);
+  const success = ctx.getProgramParameter(program, LINK_STATUS);
   if (success) {
     return program;
   }
 
-  console.log(gl.getProgramInfoLog(program));
-  gl.deleteProgram(program);
+  console.log(ctx.getProgramInfoLog(program));
+  ctx.deleteProgram(program);
   throw Error("Couldn't create program");
 }

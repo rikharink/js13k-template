@@ -1,10 +1,11 @@
+//FROM: https://github.com/Tonejs/Tone.js/blob/typescript/Tone/component/filter/FeedbackCombFilter.ts
 registerProcessor(
   "fbcf",
   class extends AudioWorkletProcessor {
     static get parameterDescriptors() {
       return [
         {
-          name: "delayTime",
+          name: "delay",
           defaultValue: 0.1,
           minValue: 0,
           maxValue: 1,
@@ -36,11 +37,15 @@ registerProcessor(
       const output = outputs[0];
       const delayLength = this.delayBuffer.length;
       const inputChannel = input[0];
+      if (!inputChannel) {
+        return true;
+      }
       const outputChannel = output[0];
-      const delayTimeParam = parameters.delayTime;
+      const delayParam = parameters.delay;
       const feedbackParam = parameters.feedback;
+
       inputChannel.forEach((value, index) => {
-        const delayTime = this.getParameter(delayTimeParam, index);
+        const delayTime = this.getParameter(delayParam, index);
         const feedback = this.getParameter(feedbackParam, index);
         const delaySamples = Math.floor(delayTime * sampleRate);
         const currentIndex = (currentFrame + index) % delayLength;

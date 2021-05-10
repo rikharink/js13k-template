@@ -14,7 +14,10 @@
     "unsafe_arrows": true,
     "unsafe_comps": true,
     "unsafe_math": true,
-    "unsafe_methods": true
+    "unsafe_methods": true,
+    "hoist_funs": true,
+    "booleans_as_integers": true,
+    "drop_console": true
   },
   "mangle": {
     "properties": true,

@@ -7,18 +7,17 @@ import {
   TEXTURE_WRAP_T,
   UNSIGNED_BYTE,
 } from "./constants";
-import { createProgram } from "./program";
 
-function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
+export function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
   let ctx: WebGL2RenderingContext | null = canvas.getContext("webgl2");
   if (ctx) {
     return ctx;
   }
-  throw Error("Can't create webgl2 context");
+  throw Error("Can't create webctx. context");
 }
 
 export function createAndSetupTexture(
-  gl: WebGL2RenderingContext,
+  ctx: WebGL2RenderingContext,
   opts: {
     wrap: number;
     filter: number;
@@ -28,13 +27,13 @@ export function createAndSetupTexture(
     pixels: ArrayBufferView | Uint8Array | null;
   }
 ) {
-  let texture = gl.createTexture();
-  gl.bindTexture(TEXTURE_2D, texture);
-  gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, opts.wrap);
-  gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, opts.wrap);
-  gl.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, opts.filter);
-  gl.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, opts.filter);
-  gl.texImage2D(
+  let texture = ctx.createTexture();
+  ctx.bindTexture(TEXTURE_2D, texture);
+  ctx.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, opts.wrap);
+  ctx.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, opts.wrap);
+  ctx.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, opts.filter);
+  ctx.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, opts.filter);
+  ctx.texImage2D(
     TEXTURE_2D,
     0,
     opts.format,
@@ -48,7 +47,7 @@ export function createAndSetupTexture(
   return texture!;
 }
 
-function resizeCanvasToDisplaySize(
+export function resizeCanvasToDisplaySize(
   canvas: HTMLCanvasElement,
   multiplier?: number
 ) {
@@ -63,5 +62,3 @@ function resizeCanvasToDisplaySize(
   }
   return false;
 }
-
-export { createProgram, resizeCanvasToDisplaySize, getContext };

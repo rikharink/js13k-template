@@ -1,61 +1,66 @@
-import { distortionCurve } from "../distortion-curve";
-import { Instrument, InstrumentOptions } from "./instrument";
+// Adapted from: https://www.kabisa.nl/tech/browser-beats-i-synthesizing-a-kick-drum/
+import { getDistortion } from "../effects/distortion";
 import { SoundContext } from "../sound-context";
+import { Frequency, Seconds } from "../units";
+import { whiteNoise } from "../util";
 
-export interface KickOptions extends InstrumentOptions {
-  frequencyStart?: number;
-  frequency?: number;
-  decay?: number;
-  pitchDecay?: number;
+interface KickOptions {
+  gain?: number;
+  startFrequency?: Frequency;
+  frequency?: Frequency;
+  attack?: Seconds;
+  decay?: Seconds;
   distortion?: number;
-  wave?: OscillatorType;
+  noiseDuration?: Seconds;
+  noiseFilterFrequency?: Frequency;
+  destination?: AudioNode;
 }
 
-export class Kick extends Instrument<KickOptions> {
-  private _frequencyStart: number;
-  private _frequency: number;
-  private _decay: number;
-  private _pitchDecay: number;
-  private _distortion: number;
-  private _distortionCurve: Float32Array;
-  private _wave: OscillatorType;
+export function playKick(ctx: SoundContext, opts?: KickOptions, time?: number) {
+  let {
+    gain = 1,
+    startFrequency = 220,
+    frequency = 55,
+    attack = 0.1,
+    decay = 0.5,
+    distortion = 20,
+    noiseDuration = 0.2,
+    noiseFilterFrequency = 160,
+    destination = ctx.destination,
+  } = opts ?? {};
+  time = time! || ctx.currentTime;
+  const triangle = ctx.createOscillator();
+  triangle.type = "triangle";
+  triangle.frequency.setValueAtTime(startFrequency, time);
+  triangle.frequency.exponentialRampToValueAtTime(frequency, time + attack);
 
-  constructor(ctx: SoundContext, opts?: KickOptions) {
-    super(ctx, opts);
-    this._frequency = opts?.frequency ?? 51.913;
-    this._frequencyStart = opts?.frequencyStart ?? 207.652;
-    this._pitchDecay = opts?.pitchDecay ?? 0.08;
-    this._decay = opts?.decay ?? 0.8;
-    this._distortion = opts?.distortion ?? 4;
-    this._distortionCurve = distortionCurve(this._ctx, this._distortion);
-    this._wave = opts?.wave ?? "sine";
-  }
+  const waveShaper = getDistortion(ctx, distortion);
+  const triangleGainNode = ctx.createGain();
+  triangleGainNode.gain.setValueAtTime(gain, time);
+  triangleGainNode.gain.linearRampToValueAtTime(0, time + decay);
 
-  trigger(time?: number) {
-    time ??= this._ctx.currentTime;
-    const osc = this._ctx.createOscillator();
-    osc.type = this._wave;
-    osc.frequency.value = this._frequencyStart;
-    osc.frequency.exponentialRampToValueAtTime(
-      this._frequency,
-      time + this._pitchDecay
-    );
+  triangle.connect(waveShaper);
+  waveShaper.connect(triangleGainNode);
+  triangleGainNode.connect(destination);
 
-    const waveShaper = this._ctx.createWaveShaper();
-    waveShaper.curve = this._distortionCurve;
+  const noise = whiteNoise(ctx);
+  const noiseGainNode = ctx.createGain();
+  noiseGainNode.gain.setValueAtTime(gain, time);
+  noiseGainNode.gain.linearRampToValueAtTime(
+    0,
+    ctx.currentTime + noiseDuration
+  );
 
-    const triangleGainNode = this._ctx.createGain();
-    triangleGainNode.gain.value = 1;
-    triangleGainNode.gain.exponentialRampToValueAtTime(
-      0.001,
-      time + this._decay
-    );
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = "lowpass";
+  noiseFilter.frequency.setValueAtTime(noiseFilterFrequency, time);
 
-    osc.connect(waveShaper);
-    waveShaper.connect(triangleGainNode);
-    triangleGainNode.connect(this._amp);
+  noise.connect(noiseGainNode);
+  noiseGainNode.connect(noiseFilter);
+  noiseFilter.connect(destination);
 
-    osc.start(time);
-    osc.stop(time + this._decay + 0.4);
-  }
+  noise.start(time);
+  triangle.start(time);
+  noise.stop(time + decay);
+  triangle.stop(time + decay);
 }

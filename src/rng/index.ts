@@ -1,1 +1,2 @@
-export type { Random } from "./random";
+export type Random = () => number;
+export { seedRand } from "./random";

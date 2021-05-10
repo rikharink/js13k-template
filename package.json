@@ -19,9 +19,15 @@
     "dev:watch_html": "chokidar src/index.html -d 0 -c \"yarn dev:html\"",
     "dev:watch_img": "chokidar src/img -d 0 -c \"yarn dev:ts\"",
     "lint": "npm-run-all -s lint:*",
-    "lint:ts": "tsc -noEmit"
+    "lint:ts": "tsc -noEmit",
+    "serve": "run-p serve:*",
+    "serve:watch": "chokidar src/ -d 0 -c \"yarn serve:build\"",
+    "serve:build": "yarn build",
+    "serve:serve": "dotnet-serve -d dist -p 8337 -o"
   },
   "devDependencies": {
+    "@tscc/tscc": "^0.6.4",
+    "@types/node": "^15.0.2",
     "browser-sync": "^2.26.14",
     "chokidar-cli": "^2.1.0",
     "esbuild": "^0.11.18",

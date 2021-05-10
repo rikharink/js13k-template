@@ -181,9 +181,9 @@ export class PixelSprite {
       for (let x = 0; x < w; x++) {
         const val = this.getData(x, y);
         if (val === MaskData.EmptyBody) {
-          this.setData(x, y, val * Math.round(this._rng.random()));
+          this.setData(x, y, val * Math.round(this._rng()));
         } else if (val === MaskData.BorderBody) {
-          if (this._rng.random() > 0.5) {
+          if (this._rng() > 0.5) {
             this.setData(x, y, 1);
           } else {
             this.setData(x, y, -1);
@@ -231,12 +231,12 @@ export class PixelSprite {
   }
 
   private _renderPixelData() {
-    const isVerticalGradient = this._rng.random() > 0.5;
+    const isVerticalGradient = this._rng() > 0.5;
     const saturation = Math.max(
-      Math.min(this._rng.random() * this._options.saturation!, 1),
+      Math.min(this._rng() * this._options.saturation!, 1),
       0
     );
-    let hue = this._rng.random();
+    let hue = this._rng();
     let ulen, vlen;
     if (isVerticalGradient) {
       ulen = this._height;
@@ -249,16 +249,13 @@ export class PixelSprite {
     for (let u = 0; u < ulen; u++) {
       // Create a non-uniform random number between 0 and 1 (lower numbers more likely)
       let isNewColor = Math.abs(
-        (this._rng.random() * 2 -
-          1 +
-          (this._rng.random() * 2 - 1) +
-          (this._rng.random() * 2 - 1)) /
+        (this._rng() * 2 - 1 + (this._rng() * 2 - 1) + (this._rng() * 2 - 1)) /
           3
       );
 
       // Only change the color sometimes (values above 0.8 are less likely than others)
       if (isNewColor > 1 - this._options.colorVariations!) {
-        hue = this._rng.random();
+        hue = this._rng();
       }
 
       for (let v = 0; v < vlen; v++) {
@@ -279,7 +276,7 @@ export class PixelSprite {
             let brightness =
               Math.sin((u / ulen) * Math.PI) *
                 (1 - this._options.brightnessNoise!) +
-              this._rng.random() * this._options.brightnessNoise!;
+              this._rng() * this._options.brightnessNoise!;
 
             // Get the RGB color value
             this.hslToRgb(hue, saturation, brightness, rgb);

@@ -1,57 +1,73 @@
-import { Kick } from "./audio/instruments/kick";
-import { Noise } from "./audio/instruments/noise";
-import { Repeater } from "./audio/sequencing/repeater";
-import { SoundMachine } from "./audio/sequencing/sound-machine";
+import {
+  getFeedbackCombFilter,
+  loadFeedbackCombFilter,
+} from "./audio/effects/feedback-comb-filter";
+import { playKick } from "./audio/instruments/kick";
+import { SequencingClock } from "./audio/sequencing/sequencing-clock";
 import { SoundContext } from "./audio/sound-context";
-import { secondsPerBeat } from "./audio/util";
-import { TRIANGLES } from "./gl/constants";
+import { getDebugInfoUpdater } from "./debug/index";
 import { resizeCanvasToDisplaySize, getContext } from "./gl/index";
-import { createPasstroughProgram } from "./gl/shaders/index";
-import worklet from "./audio/processors/feedback-comb-filter.awlet";
+import { seedRand } from "./rng/index";
 
-console.log(worklet);
+// GAME
+export const DEBUG = process.env.DEBUG;
 
-//GAMELOOP
 let running = false;
 let requestId: number;
-let lastTime: number;
-let currentTime: number;
-let elapsedTime: number;
+let lastTime: number = 0;
+let currentTime: number = 0;
+let elapsedTime: number = 0;
+const seed: string = "SEED_ME";
+const rand = seedRand(seed);
+const updateDebugInfo = DEBUG ? getDebugInfoUpdater(seed) : undefined;
 
-//GL
+// GL
 const canvas = document.getElementById("c") as HTMLCanvasElement;
 const gl = getContext(canvas);
-const program = createPasstroughProgram(gl);
-let ctx: SoundContext | undefined;
-let kick: Kick;
-let volume: GainNode;
-let kicker: Repeater;
-let noiser: Repeater;
-let noise: Noise;
-let effect: AudioNode;
-let sound: SoundMachine;
-const spb = secondsPerBeat(128);
+
+// AUDIO
+const ctx: SoundContext = new AudioContext();
+const clockSource = new SequencingClock(147);
+let masterGain: GainNode;
+let effects: AudioNode[] = [];
+
+async function setupAudio(ctx: SoundContext) {
+  masterGain = ctx.createGain();
+  masterGain.connect(ctx.destination);
+  await loadFeedbackCombFilter(ctx);
+  let fbcf = getFeedbackCombFilter(ctx);
+  fbcf.connect(masterGain);
+  effects.push(fbcf);
+}
 
 onload = async (_ev: Event) => {
   document.title = "JS13K Game Template";
-  ctx = new AudioContext();
-  volume = ctx.createGain();
-  volume.connect(ctx.destination);
-  kick = new Kick(ctx, { gain: 2, distortion: 8 });
-  kick.connect(volume);
-  noise = new Noise(ctx, { gain: 0.4, decay: 0.1 });
-  noise.connect(volume);
-  kicker = new Repeater(ctx, kick, { timing: spb * 4 });
-  noiser = new Repeater(ctx, noise, { timing: spb * 4, startDelay: spb * 2 });
-  sound = new SoundMachine(kicker, noiser);
-  volume.gain.setValueAtTime(1, ctx.currentTime);
+  await setupAudio(ctx);
   handleResize();
   toggleLoop(true);
+  clockSource.subscribe((step) => {
+    if (step % 4 == 0) {
+      playKick(ctx, {
+        destination: effects[0],
+      });
+    }
+    if ((step - 2) % 4 == 0) {
+      playKick(ctx, {
+        frequency: 103.826,
+        decay: 0.2,
+        distortion: 200 + rand() * 100,
+        gain: 0.5,
+        destination: effects[0],
+      });
+    }
+  });
+  clockSource.toggle(true);
 };
 
 onclick = async (_ev: Event) => {
-  noise.trigger();
-  kick.trigger();
+  if (clockSource.toggle()) {
+    clockSource.reset();
+  }
 };
 
 function handleResize(_ev?: UIEvent) {}
@@ -59,11 +75,15 @@ function handleResize(_ev?: UIEvent) {}
 function render(_time: number) {
   resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.useProgram(program);
-  gl.drawArrays(TRIANGLES, 0, 3);
 }
 
-function update() {}
+function update() {
+  if (DEBUG) {
+    if (elapsedTime > 0) {
+      updateDebugInfo!(elapsedTime);
+    }
+  }
+}
 
 function loop(time: number) {
   if (running) {
@@ -89,6 +109,9 @@ function toggleLoop(value: boolean) {
 onresize = handleResize;
 
 document.onvisibilitychange = function (e: Event) {
-  // pause loop and game timer when switching tabs
-  toggleLoop(!(e.target as Document).hidden);
+  const status = !(e.target as Document).hidden;
+  toggleLoop(status);
+  if (!status) {
+    clockSource.toggle(status);
+  }
 };
