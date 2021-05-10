@@ -1,0 +1,119 @@
+registerProcessor(
+  "ks",
+  class extends AudioWorkletProcessor {
+    constructor(options) {
+      super();
+      // In order to be able to measure the overhead of each AudioWorkletNode,
+      // this processor is written so that it can model an arbitrary number of
+      // strings.
+      this.filterZs = [];
+      this.delayLines = [];
+      this.delayLineIndices = [];
+      this.excitationReadIndices = [];
+      this.envelopeFollowerCoeff = Math.exp(
+        Math.log(0.01) / (10 * sampleRate * 0.001)
+      ); // 10ms
+      this.envelopes = [];
+      this.feedback = options.processorOptions.feedback / 2;
+
+      const f0s = options.processorOptions.f0s;
+      const seed = options.processorOptions.seed;
+      const rand = this.seedRand(seed);
+
+      if (f0s.length > 100) {
+        throw new Error("Each AudioWorklet node can simulate max 100 strings.");
+      }
+
+      f0s.forEach((f0) => {
+        this.createString(f0);
+      });
+
+      this.stringCount = f0s.length;
+
+      // Noise Burst / Excitation
+      this.excitation = new Array(sampleRate).fill(0);
+      for (let i = 0; i < sampleRate; i++) {
+        this.excitation[i] = (rand() - 0.5) * 1.5;
+      }
+
+      this.port.onmessage = this.handleMessage.bind(this);
+    }
+
+    createString(f0) {
+      this.filterZs.push(0);
+      // Delay Line
+      const idealDelayLineLength = sampleRate / f0;
+      // For this to really be correct, this processor should
+      // implement a fractional delay line length. Right now, the
+      // string cannot be precisely tuned because of this rounding/flooring.
+      const delayLineLength = Math.floor(idealDelayLineLength);
+      this.delayLines.push(new Array(delayLineLength).fill(0));
+      this.delayLineIndices.push(0);
+
+      // Noise Burst / Excitation
+      this.excitationReadIndices.push(delayLineLength);
+      // Envelope follower value
+      this.envelopes.push(0);
+    }
+
+    seedRand(str) {
+      for (var i = 0, h = 2166136261 >>> 0; i < str.length; i++) {
+        h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+      }
+      h += h << 13;
+      h ^= h >>> 7;
+      h += h << 3;
+      h ^= h >>> 17;
+      let seed = (h += h << 5) >>> 0;
+      let rand = () =>
+        ((2 ** 31 - 1) & (seed = Math.imul(48271, seed))) / 2 ** 31;
+      rand();
+      return rand;
+    }
+
+    handleMessage(event) {
+      if (event.data.type === "play") {
+        // Pluck the string
+        this.excitationReadIndices[event.data.stringIndex] = 0;
+      }
+    }
+
+    process(_inputs, outputs, _parameters) {
+      const output = outputs[0];
+      const outputChannel = output[0];
+      outputChannel.fill(0.0);
+
+      for (let s = 0; s < this.stringCount; ++s) {
+        for (let i = 0; i < outputChannel.length; ++i) {
+          const delayLineLength = this.delayLines[s].length;
+          const currentExcitation =
+            this.excitationReadIndices[s] < delayLineLength
+              ? this.excitation[this.excitationReadIndices[s]]
+              : 0;
+          const currentDelayLineOutput = this.delayLines[s][
+            this.delayLineIndices[s]
+          ];
+          // This is a really simple low-pass filter which just (more or
+          // less) averages the last value with the current value, and ensures
+          // that the signal will decay.
+          this.filterZs[s] =
+            currentDelayLineOutput * this.feedback +
+            this.filterZs[s] * this.feedback;
+
+          const sum = currentExcitation + this.filterZs[s];
+          outputChannel[i] += sum;
+
+          const absSum = Math.abs(sum);
+          this.envelopes[s] =
+            this.envelopeFollowerCoeff * (this.envelopes[s] - absSum) + absSum;
+
+          this.delayLines[s][this.delayLineIndices[s]] = sum;
+          this.excitationReadIndices[s]++;
+          this.delayLineIndices[s] =
+            (this.delayLineIndices[s] + 1) % delayLineLength;
+        }
+      }
+      return true;
+    }
+  }
+);

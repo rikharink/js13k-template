@@ -36,37 +36,3 @@ export function noteToFrequency(
     rootFrequency * Math.pow(Math.pow(2, 1 / 12), halfStepsBetween(note, root))
   );
 }
-
-// export function mergeParams(params: AudioParam[]) {
-//   const singleParam = params[0];
-//   const parameter: AudioParam = {};
-//   const audioNodeMethods = Object.getOwnPropertyNames(
-//     AudioParam.prototype
-//   ).filter((prop) => typeof singleParam[prop] === "function");
-
-//   //allows things like parameter.setValueAtTime(x, ctx.currentTime)
-//   audioNodeMethods.forEach((method) => {
-//     parameter[method] = (...argums) => {
-//       const args = Array.prototype.slice.call(argums);
-//       params.forEach((param) => {
-//         singleParam[method].apply(param, args);
-//       });
-//     };
-//   });
-
-//   //allows to do parameter.value = x
-//   Object.defineProperties(parameter, {
-//     value: {
-//       get: function () {
-//         return singleParam.value;
-//       },
-//       set: function (value) {
-//         params.forEach((param) => {
-//           param.value = value;
-//         });
-//       },
-//     },
-//   });
-
-//   return parameter;
-// }

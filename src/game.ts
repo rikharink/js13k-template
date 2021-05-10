@@ -3,6 +3,10 @@ import {
   loadFeedbackCombFilter,
 } from "./audio/effects/feedback-comb-filter";
 import { playKick } from "./audio/instruments/kick";
+import {
+  loadPluckedString,
+  PluckedStrings,
+} from "./audio/instruments/plucked-strings";
 import { SequencingClock } from "./audio/sequencing/sequencing-clock";
 import { SoundContext } from "./audio/sound-context";
 import { getDebugInfoUpdater } from "./debug/index";
@@ -17,7 +21,7 @@ let requestId: number;
 let lastTime: number = 0;
 let currentTime: number = 0;
 let elapsedTime: number = 0;
-const seed: string = "SEED_ME";
+const seed: string = "seed";
 const rand = seedRand(seed);
 const updateDebugInfo = DEBUG ? getDebugInfoUpdater(seed) : undefined;
 
@@ -30,12 +34,20 @@ const ctx: SoundContext = new AudioContext();
 const clockSource = new SequencingClock(147);
 let masterGain: GainNode;
 let effects: AudioNode[] = [];
+let guitar: PluckedStrings;
 
 async function setupAudio(ctx: SoundContext) {
   masterGain = ctx.createGain();
   masterGain.connect(ctx.destination);
   await loadFeedbackCombFilter(ctx);
+  await loadPluckedString(ctx);
   let fbcf = getFeedbackCombFilter(ctx);
+  guitar = new PluckedStrings(ctx, {
+    feedback: 0.998,
+    frequencies: [622 / 4, 494 / 4, 415 / 4],
+    seed: seed,
+  });
+  guitar.connect(masterGain);
   fbcf.connect(masterGain);
   effects.push(fbcf);
 }
@@ -61,13 +73,11 @@ onload = async (_ev: Event) => {
       });
     }
   });
-  clockSource.toggle(true);
+  //clockSource.toggle(true);
 };
 
 onclick = async (_ev: Event) => {
-  if (clockSource.toggle()) {
-    clockSource.reset();
-  }
+  guitar.strum(25);
 };
 
 function handleResize(_ev?: UIEvent) {}

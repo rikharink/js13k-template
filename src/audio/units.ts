@@ -54,3 +54,5 @@ export type Tone = { note: Note; octave: Octave };
 export type Frequency = number;
 export type Seconds = number;
 export type Milliseconds = number;
+export type Index = number;
+export type NormalRange = number;
