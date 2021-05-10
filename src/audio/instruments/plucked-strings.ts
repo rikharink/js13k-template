@@ -29,8 +29,9 @@ export class PluckedStrings {
     });
   }
 
-  public connect(node: AudioNode) {
+  public connect(node: AudioNode): AudioNode {
     this._node.connect(node);
+    return node;
   }
 
   public disconnect() {

@@ -1,37 +1,41 @@
-export const C = 0;
-type C = 0;
-export const Cs = 1;
-type Cs = 1;
-export const Df = 1;
-type Df = 1;
-export const D = 2;
-type D = 2;
-export const Ds = 3;
-type Ds = 3;
-export const E = 4;
-type E = 4;
-export const F = 5;
-type F = 5;
-export const Fs = 6;
-type Fs = 6;
-export const Gf = 6;
-type Gf = 6;
-export const G = 7;
-type G = 7;
-export const Gs = 8;
-type Gs = 8;
-export const Af = 8;
-type Af = 8;
-export const A = 9;
-type A = 9;
-export const As = 10;
-type As = 10;
-export const Bf = 10;
-type Bf = 10;
-export const B = 11;
-type B = 11;
+export const A = 0;
+type A = 0;
+export const As = 1;
+type As = 1;
+export const Bf = 1;
+type Bf = 1;
+export const B = 2;
+type B = 2;
+export const C = 3;
+type C = 3;
+export const Cs = 4;
+type Cs = 4;
+export const Df = 4;
+type Df = 4;
+export const D = 5;
+type D = 5;
+export const Ds = 6;
+type Ds = 6;
+export const E = 7;
+type E = 7;
+export const F = 8;
+type F = 8;
+export const Fs = 9;
+type Fs = 9;
+export const Gf = 9;
+type Gf = 9;
+export const G = 10;
+type G = 10;
+export const Gs = 11;
+type Gs = 11;
+export const Af = 11;
+type Af = 11;
 
 export type Note =
+  | A
+  | As
+  | Bf
+  | B
   | C
   | Cs
   | Df
@@ -43,14 +47,12 @@ export type Note =
   | Gf
   | G
   | Gs
-  | Af
-  | A
-  | As
-  | Bf
-  | B;
+  | Af;
 
 export type Octave = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type Tone = { note: Note; octave: Octave };
+export type Chord = Tone[];
+export type Mode = "major" | "minor";
 export type Frequency = number;
 export type Seconds = number;
 export type Milliseconds = number;

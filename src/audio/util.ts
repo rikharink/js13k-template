@@ -1,5 +1,6 @@
+import { Model } from "../procgen/textures/wfc/model";
 import { SoundContext } from "./sound-context";
-import { A, Frequency, Tone } from "./units";
+import { A, Chord, Frequency, Mode, Note, Octave, Tone } from "./units";
 
 export async function loadAudioWorklet(ctx: SoundContext, source: string) {
   await ctx.audioWorklet.addModule(
@@ -23,16 +24,35 @@ export function whiteNoise(ctx: SoundContext): AudioBufferSourceNode {
   return whiteNoise;
 }
 
-export function halfStepsBetween(a: Tone, b: Tone): number {
-  return a.note - b.note + (a.octave - b.octave) * 12;
+export function noteToFrequency(note: Tone): Frequency {
+  return 440 * Math.pow(2.0, ((note.octave - 4) * 12 + note.note) / 12.0);
 }
 
-export function noteToFrequency(
-  note: Tone,
-  root: Tone = { note: A, octave: 4 },
-  rootFrequency: Frequency = 440
-): Frequency {
-  return (
-    rootFrequency * Math.pow(Math.pow(2, 1 / 12), halfStepsBetween(note, root))
-  );
+export function addSemitones(note: Tone, semitones: number): Tone {
+  let n = note.note + semitones;
+  let o = note.octave;
+  while (n < 0) {
+    n = 12 - n;
+    o--;
+  }
+  while (n >= 12) {
+    n -= 12;
+    o++;
+  }
+  return {
+    note: n as Note,
+    octave: o as Octave,
+  };
+}
+
+export function getTriad(note: Tone, mode: Mode): Chord {
+  const chord: Chord = [];
+  chord.push(note);
+  chord.push(addSemitones(note, mode == "minor" ? 3 : 4));
+  chord.push(addSemitones(note, 7));
+  return chord;
+}
+
+export function chordToFrequencies(chord: Chord): Frequency[] {
+  return chord.map(noteToFrequency);
 }

@@ -34,7 +34,7 @@ export function playKick(ctx: SoundContext, opts?: KickOptions, time?: number) {
   triangle.frequency.setValueAtTime(startFrequency, time);
   triangle.frequency.exponentialRampToValueAtTime(frequency, time + attack);
 
-  const waveShaper = getDistortion(ctx, distortion);
+  const waveShaper = getDistortion(ctx, distortion, "kicker");
   const triangleGainNode = ctx.createGain();
   triangleGainNode.gain.setValueAtTime(gain, time);
   triangleGainNode.gain.linearRampToValueAtTime(0, time + decay);

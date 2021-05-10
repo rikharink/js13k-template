@@ -1,7 +1,12 @@
+import { getDistortion } from "./audio/effects/distortion";
 import {
   getFeedbackCombFilter,
   loadFeedbackCombFilter,
 } from "./audio/effects/feedback-comb-filter";
+import {
+  getOnePoleHighpass,
+  getOnePoleLowpass,
+} from "./audio/effects/one-pole-filters";
 import { playKick } from "./audio/instruments/kick";
 import {
   loadPluckedString,
@@ -9,6 +14,8 @@ import {
 } from "./audio/instruments/plucked-strings";
 import { SequencingClock } from "./audio/sequencing/sequencing-clock";
 import { SoundContext } from "./audio/sound-context";
+import { Gs } from "./audio/units";
+import { chordToFrequencies, getTriad } from "./audio/util";
 import { getDebugInfoUpdater } from "./debug/index";
 import { resizeCanvasToDisplaySize, getContext } from "./gl/index";
 import { seedRand } from "./rng/index";
@@ -42,12 +49,17 @@ async function setupAudio(ctx: SoundContext) {
   await loadFeedbackCombFilter(ctx);
   await loadPluckedString(ctx);
   let fbcf = getFeedbackCombFilter(ctx);
+  const chord = chordToFrequencies(getTriad({ note: Gs, octave: 0 }, "minor"));
+  chord.reverse();
   guitar = new PluckedStrings(ctx, {
-    feedback: 0.998,
-    frequencies: [622 / 4, 494 / 4, 415 / 4],
+    feedback: 0.97,
+    frequencies: chord,
     seed: seed,
   });
-  guitar.connect(masterGain);
+  const distortion = getDistortion(ctx, 1, "driver");
+  const cubic = getDistortion(ctx, 0, "cubic");
+  const lp = getOnePoleLowpass(ctx, 1661);
+  guitar.connect(distortion).connect(cubic).connect(lp).connect(masterGain);
   fbcf.connect(masterGain);
   effects.push(fbcf);
 }
@@ -77,7 +89,7 @@ onload = async (_ev: Event) => {
 };
 
 onclick = async (_ev: Event) => {
-  guitar.strum(25);
+  guitar.strum(10);
 };
 
 function handleResize(_ev?: UIEvent) {}
