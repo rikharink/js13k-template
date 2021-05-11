@@ -11,7 +11,13 @@ export function createShader(
   source: string
 ) {
   let shader = ctx.createShader(type);
-  if (!shader) throw Error("Couldn't create shader");
+  if (!shader) {
+    if (process.env.DEBUG) {
+      throw Error("Couldn't create shader");
+    } else {
+      return undefined!;
+    }
+  }
 
   ctx.shaderSource(shader, source);
   ctx.compileShader(shader);
@@ -21,7 +27,10 @@ export function createShader(
     return shader;
   }
   ctx.deleteShader(shader);
-  throw Error("Couldn't create shader");
+  if (process.env.DEBUG) {
+    throw Error("Couldn't create shader");
+  }
+  return undefined!;
 }
 
 export function createProgram(
@@ -43,5 +52,8 @@ export function createProgram(
 
   console.log(ctx.getProgramInfoLog(program));
   ctx.deleteProgram(program);
-  throw Error("Couldn't create program");
+  if (process.env.DEBUG) {
+    throw Error("Couldn't create program");
+  }
+  return undefined!;
 }

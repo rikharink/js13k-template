@@ -1,5 +1,6 @@
 // Adapted from: https://www.kabisa.nl/tech/browser-beats-i-synthesizing-a-kick-drum/
 import { getDistortion } from "../effects/distortion";
+import { KICKER } from "../effects/distortion-curves";
 import { SoundContext } from "../sound-context";
 import { Frequency, Seconds } from "../units";
 import { whiteNoise } from "../util";
@@ -34,7 +35,7 @@ export function playKick(ctx: SoundContext, opts?: KickOptions, time?: number) {
   triangle.frequency.setValueAtTime(startFrequency, time);
   triangle.frequency.exponentialRampToValueAtTime(frequency, time + attack);
 
-  const waveShaper = getDistortion(ctx, distortion, "kicker");
+  const waveShaper = getDistortion(ctx, distortion, KICKER);
   const triangleGainNode = ctx.createGain();
   triangleGainNode.gain.setValueAtTime(gain, time);
   triangleGainNode.gain.linearRampToValueAtTime(0, time + decay);

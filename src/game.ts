@@ -1,27 +1,16 @@
 import { getDistortion } from "./audio/effects/distortion";
-import {
-  getFeedbackCombFilter,
-  loadFeedbackCombFilter,
-} from "./audio/effects/feedback-comb-filter";
-import {
-  getOnePoleHighpass,
-  getOnePoleLowpass,
-} from "./audio/effects/one-pole-filters";
-import { playKick } from "./audio/instruments/kick";
+import { DRIVER } from "./audio/effects/distortion-curves";
 import {
   loadPluckedString,
   PluckedStrings,
 } from "./audio/instruments/plucked-strings";
-import { SequencingClock } from "./audio/sequencing/sequencing-clock";
 import { SoundContext } from "./audio/sound-context";
 import { Gs } from "./audio/units";
 import { chordToFrequencies, getTriad } from "./audio/util";
+import { ENVELOPE_EXPONENTIAL, getADEnvelopeTrigger } from "./control/envelope";
 import { getDebugInfoUpdater } from "./debug/index";
 import { resizeCanvasToDisplaySize, getContext } from "./gl/index";
 import { seedRand } from "./rng/index";
-
-// GAME
-export const DEBUG = process.env.DEBUG;
 
 let running = false;
 let requestId: number;
@@ -30,25 +19,39 @@ let currentTime: number = 0;
 let elapsedTime: number = 0;
 const seed: string = "seed";
 const rand = seedRand(seed);
-const updateDebugInfo = DEBUG ? getDebugInfoUpdater(seed) : undefined;
+const updateDebugInfo = process.env.DEBUG
+  ? getDebugInfoUpdater(seed)
+  : undefined;
 
 // GL
-const canvas = document.getElementById("c") as HTMLCanvasElement;
-const gl = getContext(canvas);
+const c = document.getElementById("c") as HTMLCanvasElement;
+const gl = getContext(c);
 
 // AUDIO
 const ctx: SoundContext = new AudioContext();
-const clockSource = new SequencingClock(147);
-let masterGain: GainNode;
-let effects: AudioNode[] = [];
+let masterGain = 0.1;
+let musicGain = 1;
+let effectsGain = 1;
+let master: GainNode;
+let music: GainNode;
+let effects: GainNode;
 let guitar: PluckedStrings;
+let triggerEnvelope: () => void;
 
 async function setupAudio(ctx: SoundContext) {
-  masterGain = ctx.createGain();
-  masterGain.connect(ctx.destination);
-  await loadFeedbackCombFilter(ctx);
+  master = ctx.createGain();
+  master.connect(ctx.destination);
+  master.gain.setValueAtTime(masterGain, ctx.currentTime);
+
+  music = ctx.createGain();
+  music.gain.setValueAtTime(musicGain, ctx.currentTime);
+  music.connect(master);
+
+  effects = ctx.createGain();
+  effects.gain.setValueAtTime(effectsGain, ctx.currentTime);
+  effects.connect(master);
+
   await loadPluckedString(ctx);
-  let fbcf = getFeedbackCombFilter(ctx);
   const chord = chordToFrequencies(getTriad({ note: Gs, octave: 0 }, "minor"));
   chord.reverse();
   guitar = new PluckedStrings(ctx, {
@@ -56,12 +59,18 @@ async function setupAudio(ctx: SoundContext) {
     frequencies: chord,
     seed: seed,
   });
-  const distortion = getDistortion(ctx, 1, "driver");
-  const cubic = getDistortion(ctx, 0, "cubic");
-  const lp = getOnePoleLowpass(ctx, 1661);
-  guitar.connect(distortion).connect(cubic).connect(lp).connect(masterGain);
-  fbcf.connect(masterGain);
-  effects.push(fbcf);
+
+  const distortion = getDistortion(ctx, 1, DRIVER);
+  const lp = ctx.createBiquadFilter();
+  const guitarGain = ctx.createGain();
+  triggerEnvelope = getADEnvelopeTrigger(ctx, guitarGain.gain, {
+    attack: 0.2,
+    decay: 0.5,
+    type: ENVELOPE_EXPONENTIAL,
+  });
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(1661, ctx.currentTime);
+  guitar.connect(distortion).connect(lp).connect(guitarGain).connect(music);
 }
 
 onload = async (_ev: Event) => {
@@ -69,38 +78,22 @@ onload = async (_ev: Event) => {
   await setupAudio(ctx);
   handleResize();
   toggleLoop(true);
-  clockSource.subscribe((step) => {
-    if (step % 4 == 0) {
-      playKick(ctx, {
-        destination: effects[0],
-      });
-    }
-    if ((step - 2) % 4 == 0) {
-      playKick(ctx, {
-        frequency: 103.826,
-        decay: 0.2,
-        distortion: 200 + rand() * 100,
-        gain: 0.5,
-        destination: effects[0],
-      });
-    }
-  });
-  //clockSource.toggle(true);
 };
 
 onclick = async (_ev: Event) => {
   guitar.strum(10);
+  triggerEnvelope();
 };
 
 function handleResize(_ev?: UIEvent) {}
 
 function render(_time: number) {
-  resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  resizeCanvasToDisplaySize(c);
+  gl.viewport(0, 0, c.width, c.height);
 }
 
 function update() {
-  if (DEBUG) {
+  if (process.env.DEBUG) {
     if (elapsedTime > 0) {
       updateDebugInfo!(elapsedTime);
     }
@@ -133,7 +126,8 @@ onresize = handleResize;
 document.onvisibilitychange = function (e: Event) {
   const status = !(e.target as Document).hidden;
   toggleLoop(status);
-  if (!status) {
-    clockSource.toggle(status);
-  }
+  master.gain.linearRampToValueAtTime(
+    status ? masterGain : 0,
+    ctx.currentTime + 0.2
+  );
 };

@@ -13,7 +13,10 @@ export function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
   if (ctx) {
     return ctx;
   }
-  throw Error("Can't create webctx. context");
+  if (process.env.DEBUG) {
+    throw Error("Can't create webctx. context");
+  }
+  return undefined!;
 }
 
 export function createAndSetupTexture(
