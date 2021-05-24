@@ -35,6 +35,7 @@ export interface SpriteOptions {
   colorVariations?: number;
   brightnessNoise?: number;
   saturation?: number;
+  isVerticalGradient?: boolean;
 }
 
 export class PixelSprite {
@@ -47,6 +48,7 @@ export class PixelSprite {
   private _ctx!: CanvasRenderingContext2D;
   private _pixels?: ImageData;
   private _rng: Random;
+  private _isVerticalGradient: boolean;
 
   constructor(
     mask: Mask,
@@ -57,6 +59,7 @@ export class PixelSprite {
       colorVariations = 0.2,
       brightnessNoise = 0.3,
       saturation = 0.5,
+      isVerticalGradient = undefined,
     }: SpriteOptions
   ) {
     this._width = mask.width * (mask.mirrorX ? 2 : 1);
@@ -64,6 +67,9 @@ export class PixelSprite {
     this._mask = mask;
     this._rng = rng;
     this._data = new Array(this._width * this._height);
+    this._isVerticalGradient = isVerticalGradient
+      ? isVerticalGradient
+      : rng() > 0.5;
 
     this._options = {
       colored,
@@ -194,14 +200,13 @@ export class PixelSprite {
   }
 
   private _renderPixelData() {
-    const isVerticalGradient = this._rng() > 0.5;
     const saturation = Math.max(
       Math.min(this._rng() * this._options.saturation!, 1),
       0
     );
     let hue = this._rng();
     let ulen, vlen;
-    if (isVerticalGradient) {
+    if (this._isVerticalGradient) {
       ulen = this._height;
       vlen = this._width;
     } else {
@@ -223,7 +228,7 @@ export class PixelSprite {
 
       for (let v = 0; v < vlen; v++) {
         let val, index;
-        if (isVerticalGradient) {
+        if (this._isVerticalGradient) {
           val = this.getData(v, u);
           index = (u * vlen + v) * 4;
         } else {
@@ -234,34 +239,33 @@ export class PixelSprite {
         let rgb = { r: 1, g: 1, b: 1 };
 
         if (val !== 0) {
-          if (this._options.colored) {
-            // Fade brightness away towards the edges
-            let brightness =
-              Math.sin((u / ulen) * Math.PI) *
-                (1 - this._options.brightnessNoise!) +
-              this._rng() * this._options.brightnessNoise!;
+          // Fade brightness away towards the edges
+          let brightness =
+            Math.sin((u / ulen) * Math.PI) *
+              (1 - this._options.brightnessNoise!) +
+            this._rng() * this._options.brightnessNoise!;
 
-            // Get the RGB color value
-            this.hslToRgb(hue, saturation, brightness, rgb);
+          // Get the RGB color value
+          this.hslToRgb(hue, saturation, brightness, rgb);
 
-            // If this is an edge, then darken the pixel
-            if (val === -1) {
-              rgb.r *= this._options.edgeBrightness!;
-              rgb.g *= this._options.edgeBrightness!;
-              rgb.b *= this._options.edgeBrightness!;
-            }
-          } else {
-            // Not colored, simply output black
-            if (val === -1) {
-              rgb.r = 0;
-              rgb.g = 0;
-              rgb.b = 0;
-            }
+          // If this is an edge, then darken the pixel
+          if (val === -1) {
+            rgb.r *= this._options.edgeBrightness!;
+            rgb.g *= this._options.edgeBrightness!;
+            rgb.b *= this._options.edgeBrightness!;
           }
         }
-        this._pixels!.data[index + 0] = rgb.r * 255;
-        this._pixels!.data[index + 1] = rgb.g * 255;
-        this._pixels!.data[index + 2] = rgb.b * 255;
+        if (this._options.colored) {
+          this._pixels!.data[index + 0] = rgb.r * 255;
+          this._pixels!.data[index + 1] = rgb.g * 255;
+          this._pixels!.data[index + 2] = rgb.b * 255;
+        } else {
+          const grayscale =
+            (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) * 255;
+          this._pixels!.data[index + 0] = grayscale;
+          this._pixels!.data[index + 1] = grayscale;
+          this._pixels!.data[index + 2] = grayscale;
+        }
         this._pixels!.data[index + 3] = rgb.r + rgb.g + rgb.b === 3 ? 0 : 255;
       }
     }

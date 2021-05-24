@@ -66,17 +66,23 @@
 
 .split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto 1fr;
+  width: 100%;
 }
 
 .left,
 .right {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
   flex-direction: column;
+}
+
+.left {
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 4rem;
 }
 
 .right {
   justify-content: center;
+  align-items: center;
 }

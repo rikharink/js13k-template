@@ -8,8 +8,10 @@ import {
   SpriteOptions,
 } from "./textures/pixel-sprite";
 
+import PixelGrid from "./components/PixelGrid";
+
 import React from "react";
-import { range, seedRand } from "./util";
+import { floodFill, range, seedRand } from "./util";
 
 export default function Pixel() {
   const [pixelSprite, setPixelSprite] = useState<PixelSprite>();
@@ -95,7 +97,7 @@ export default function Pixel() {
 
   useEffect(() => {
     if (pixelSprite) {
-      setOutput(pixelSprite.canvas.toDataURL());
+      setOutput(pixelSprite.canvas.toDataURL("image/png", 1));
     }
   }, [pixelSprite]);
 
@@ -134,47 +136,20 @@ export default function Pixel() {
 
   const draw = useCallback(
     (ev: React.MouseEvent<HTMLDivElement>) => {
-      if (!(ev.buttons === 1 || ev.buttons === 2)) {
+      if (!(ev.buttons === 1 || ev.buttons === 2 || ev.buttons === 4)) {
         return;
+      }
+      const index = Number(ev.currentTarget.dataset.index);
+      if (ev.buttons === 4) {
+        //floodFill(maskData, width, index, colorToRgba(getColor(maskData[index])), selectedBrush)
       }
       const brush = ev.buttons === 1 ? selectedBrush : MaskData.Empty;
       const gridIndex = Number(ev.currentTarget.dataset.index);
       maskData[gridIndex] = brush;
       setMaskData(maskData.splice(0));
     },
-    [maskData]
+    [maskData, width, selectedBrush]
   );
-
-  const maskGrid = useMemo(() => {
-    if (!maskData) {
-      return <></>;
-    }
-    return (
-      <div
-        className={styles.mask}
-        onContextMenu={(e) => e.preventDefault()}
-        style={{
-          gridTemplateColumns: `repeat(${width}, 1fr)`,
-          gridTemplateRows: `repeat(${height}, 1fr)`,
-        }}
-      >
-        {range(0, width * height).map((i) => {
-          return (
-            <div
-              key={i}
-              data-index={i}
-              data-type={maskData[i]}
-              className={styles.gridItem}
-              onMouseDown={draw}
-              onMouseOver={draw}
-            >
-              {maskData[i]}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }, [width, height, maskData]);
 
   const reset = () => {
     setMaskData(new Array(width * height).fill(MaskData.Empty));
@@ -186,6 +161,11 @@ export default function Pixel() {
       setOutput(pixelSprite.canvas.toDataURL());
     }
   };
+
+  const getColorFunc = useCallback(
+    (i: number) => getColor(maskData ? maskData[i] : 0),
+    [maskData]
+  );
 
   return (
     <div className={styles.container}>
@@ -332,7 +312,12 @@ export default function Pixel() {
                 border / body
               </button>
             </div>
-            {maskGrid}
+            <PixelGrid
+              width={width}
+              height={height}
+              draw={draw}
+              getColor={getColorFunc}
+            />
             <div>
               <button type="button" onClick={importData}>
                 import
@@ -393,4 +378,17 @@ export default function Pixel() {
       </main>
     </div>
   );
+}
+
+function getColor(brush: MaskData): string {
+  switch (brush) {
+    case MaskData.Empty:
+      return "#FFFFFF";
+    case MaskData.AlwaysBorder:
+      return "#FF69B4";
+    case MaskData.EmptyBody:
+      return "#00FF00";
+    case MaskData.BorderBody:
+      return "#0000FF";
+  }
 }

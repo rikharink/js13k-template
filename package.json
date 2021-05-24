@@ -4,10 +4,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "toolbox": "yarn workspace toolbox dev"
+    "start": "run-p start:*",
+    "start:engine": "yarn workspace engine start",
+    "start:toolbox": "yarn workspace toolbox dev"
   },
   "workspaces": [
     "engine",
     "toolbox"
-  ]
+  ],
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
 }

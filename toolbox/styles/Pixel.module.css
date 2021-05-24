@@ -46,40 +46,7 @@
 }
 
 .form {
-  padding: 1rem;
-}
-
-.mask {
-  display: grid;
-  width: fit-content;
-  user-select: none;
-  margin: 1rem;
-}
-
-.gridItem {
-  --grid-size: 24px;
-  width: var(--grid-size);
-  height: var(--grid-size);
-  line-height: var(--grid-size);
-  text-align: center;
-  border: 1px solid black;
-}
-
-.gridItem[data-type='-1'] {
-  background: black;
-  color: white;
-}
-
-.gridItem[data-type='0'] {
-  background: white;
-}
-
-.gridItem[data-type='1'] {
-  background: green;
-}
-
-.gridItem[data-type='2'] {
-  background: yellow;
+  padding: 1rem 0;
 }
 
 .output {
@@ -96,11 +63,16 @@
 .left,
 .right {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
   flex-direction: column;
+}
+
+.left {
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 4rem;
 }
 
 .right {
   justify-content: center;
+  align-items: center;
 }

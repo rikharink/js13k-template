@@ -21,3 +21,62 @@ export function seedRand(str: string) {
   rand();
   return rand;
 }
+
+export function rgbToHex(rgba: [number, number, number, number]): string {
+  const r = rgba[0];
+  const g = rgba[1];
+  const b = rgba[2];
+  return "#" + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+export function hexToRgba(
+  color: string,
+  opacity: number
+): [number, number, number, number] {
+  color = color.replace("#", "");
+  const aRgbHex = color.match(/.{1,2}/g);
+  return [
+    parseInt(aRgbHex[0], 16),
+    parseInt(aRgbHex[1], 16),
+    parseInt(aRgbHex[2], 16),
+    opacity,
+  ];
+}
+
+export function getIndex(x: number, y: number, width: number): number {
+  return x + width * y;
+}
+
+export function floodFill(
+  buffer: Uint8ClampedArray,
+  width: number,
+  i: number,
+  oldColor: [number, number, number, number],
+  newColor: [number, number, number, number]
+) {
+  const stack: number[] = [i];
+  const old = JSON.stringify(oldColor);
+  do {
+    const n = stack.pop();
+    const s = n * 4;
+    const current = JSON.stringify([
+      buffer[s],
+      buffer[s + 1],
+      buffer[s + 2],
+      buffer[s + 3],
+    ]);
+    if (s < 0 || s >= buffer.length || current !== old) continue;
+
+    buffer[s] = newColor[0];
+    buffer[s + 1] = newColor[1];
+    buffer[s + 2] = newColor[2];
+    buffer[s + 3] = newColor[3];
+
+    const x = n % width;
+    const y = Math.floor(n / width);
+    stack.push(getIndex(x - 1, y, width));
+    stack.push(getIndex(x + 1, y, width));
+    stack.push(getIndex(x, y - 1, width));
+    stack.push(getIndex(x, y + 1, width));
+  } while (stack.length > 0);
+}
