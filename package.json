@@ -4,49 +4,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "clean": "rimraf dist/*",
-    "build": "run-s clean build:*",
-    "build:lint": "yarn lint",
-    "build:ts": "cross-env NODE_ENV=production node esbuild.config.mjs | terser --config-file ./terser.config.json -o dist/game.js",
-    "build:html": "html-inline -i src/index.html -b dist | html-minifier -c html-minifier.config.json -o dist/index.html",
-    "build:zip": "ect -zip dist/index.html",
-    "build:move": "shx mv dist/index.zip release/game.zip",
-    "build:size": "node tools/zipSize.js",
-    "analyze": "run-s build analyze:*",
-    "analyze:gzip": "gzip dist/game.js --extension=gz",
-    "analyze:heatmap": "cd dist && gzthermal -l game.js.gz",
-    "analyze:open": "code dist/gzthermal-result.png",
-    "start": "npm-run-all -s clean -p dev:*",
-    "dev:ts": "cross-env NODE_ENV=development node esbuild.config.mjs",
-    "dev:html": "shx cp src/index.html dist/index.html",
-    "dev:serve": "browser-sync dist --watch --host 0.0.0.0 --https",
-    "dev:watch_html": "chokidar src/index.html -d 0 -c \"yarn dev:html\"",
-    "dev:watch_img": "chokidar src/img -d 0 -c \"yarn dev:ts\"",
-    "lint": "npm-run-all -s lint:*",
-    "lint:ts": "tsc -noEmit",
-    "serve": "run-p serve:*",
-    "serve:watch": "chokidar src/ -d 0 -c \"yarn serve:build\"",
-    "serve:build": "yarn build",
-    "serve:serve": "dotnet-serve -d dist -p 8337 -o"
+    "start": "run-p start:*",
+    "start:engine": "yarn workspace engine start",
+    "start:toolbox": "yarn workspace toolbox dev"
   },
+  "workspaces": [
+    "engine",
+    "toolbox"
+  ],
   "devDependencies": {
-    "@tscc/tscc": "^0.6.4",
-    "@types/node": "^15.0.2",
-    "browser-sync": "^2.26.14",
-    "chokidar-cli": "^2.1.0",
-    "esbuild": "^0.11.18",
-    "esbuild-plugin-glsl": "^1.0.3",
-    "gzip-cli": "^1.2.0",
-    "html-inline": "^1.2.0",
-    "html-minifier": "^4.0.0",
-    "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.2",
-    "shx": "^0.3.3",
-    "terser": "^5.7.0",
-    "typescript": "^4.2.4",
-    "yarn": "^1.22.10"
-  },
-  "dependencies": {
-    "cross-env": "^7.0.3"
+    "npm-run-all": "^4.1.5"
   }
 }
