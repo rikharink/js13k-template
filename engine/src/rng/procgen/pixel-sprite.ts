@@ -39,7 +39,7 @@
  *
  */
 
-import { Random } from "../../rng/index";
+import { Random } from "../../rng/random";
 
 const enum MaskData {
   AlwaysBorder = -1,

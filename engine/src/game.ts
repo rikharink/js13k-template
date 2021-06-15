@@ -1,7 +1,7 @@
 import { AudioSystem } from "./audio/audio-system";
 import { getDebugInfoUpdater } from "./debug/index";
 import { resizeCanvasToDisplaySize, getContext } from "./gl/index";
-import { seedRand } from "./rng/index";
+import { seedRand } from "./rng/random";
 
 let running = false;
 let requestId: number;

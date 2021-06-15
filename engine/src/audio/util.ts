@@ -1,4 +1,3 @@
-import { Model } from "../procgen/textures/wfc/model";
 import { SoundContext } from "./sound-context";
 import { A, Chord, Frequency, Mode, Note, Octave, Tone } from "./units";
 

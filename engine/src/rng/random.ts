@@ -1,3 +1,7 @@
+import { swap } from "../util";
+
+export type Random = () => number;
+
 //FROM: https://github.com/straker/kontra/blob/main/src/helpers.js
 /*
 The MIT License (MIT)
@@ -38,4 +42,22 @@ export function seedRand(str: string) {
   let rand = () => ((2 ** 31 - 1) & (seed = Math.imul(48271, seed))) / 2 ** 31;
   rand();
   return rand;
+}
+
+export function getRandom(rand: Random, min: number, max: number): number {
+  return rand() * (max - min + 1) + min;
+}
+
+export function getRandomInt(rand: Random, min: number, max: number): number {
+  return Math.floor(getRandom(rand, Math.ceil(min), Math.floor(max)));
+}
+
+export function getDie(rand: Random, max: number): Random {
+  return () => getRandomInt(rand, 1, max);
+}
+
+export function shuffle<T>(rand: Random, arr: T[]): void {
+  for (let i = 0; i < arr.length - 2; i++) {
+    swap(arr, i, getRandomInt(rand, i, arr.length - 1));
+  }
 }

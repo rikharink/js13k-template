@@ -1,5 +1,5 @@
-import { SoundContext } from "../audio/sound-context";
-import { Seconds } from "../audio/units";
+import { SoundContext } from "../sound-context";
+import { Seconds } from "../units";
 
 export const ENVELOPE_LINEAR = 0;
 export const ENVELOPE_EXPONENTIAL = 1;
