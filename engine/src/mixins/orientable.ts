@@ -3,30 +3,31 @@ import { Vector3 } from "../math/vector3";
 import { Constructor } from "./mixins";
 import { IPositionable } from "./positionable";
 
-export interface IRotatable extends IPositionable {
-  _rotation: Quaternion;
+export interface IOrientable extends IPositionable {
+  _orientation: Quaternion;
 }
 
-export type Rotatable = Constructor<IRotatable>;
+export type Orientable = Constructor<IOrientable>;
 
 const out: Quaternion = [0, 0, 0, 0];
 
-export function Rotatable<TBase extends Rotatable>(Base: TBase) {
-  return class Rotatable extends Base {
+export function Orientable<TBase extends Orientable>(Base: TBase) {
+  return class Orientable extends Base {
     get rotation(): Quaternion {
-      return this._rotation;
+      return this._orientation;
     }
 
     set rotation(rotation: Quaternion) {
-      this._rotation = rotation;
+      this._orientation = rotation;
     }
 
     get position(): Vector3 {
+      //@ts-ignore
       let p: Quaternion = [...super.position, 0];
       multiply(
         out,
-        multiply(out, conjugate(out, this._rotation), p),
-        this._rotation
+        multiply(out, conjugate(out, this._orientation), p),
+        this._orientation
       );
       return [out[0], out[1], out[2]];
     }

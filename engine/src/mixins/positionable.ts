@@ -3,7 +3,6 @@ import { Constructor } from "./mixins";
 
 export interface IPositionable {
   _position: Vector3;
-  get position(): Vector3;
 }
 
 export type Positionable = Constructor<IPositionable>;

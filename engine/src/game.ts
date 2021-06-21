@@ -6,6 +6,8 @@ import {
 } from "./rendering/rendering-context";
 import { seedRand } from "./math/random";
 
+import { Node, RotationTranslationScaleSource } from "./rendering/node";
+
 import { Camera } from "./rendering/camera";
 
 let running = false;
@@ -22,10 +24,10 @@ const updateDebugInfo = process.env.DEBUG
 // GL
 const c = document.getElementById("c") as HTMLCanvasElement;
 const gl = getRenderingContext<WebGL2RenderingContext>("webgl2", c);
-const cam = new Camera([10, 10, 10], [0, 0, 0, 1]);
-console.log(cam.position);
-cam.move([0, 10, 0]);
-console.log(cam.position);
+
+const source = new RotationTranslationScaleSource();
+const node = new Node(source);
+console.log(node.id);
 
 let audioSystem: AudioSystem | undefined = undefined;
 async function setupAudio() {

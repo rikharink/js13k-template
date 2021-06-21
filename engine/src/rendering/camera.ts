@@ -1,17 +1,17 @@
 import { Quaternion } from "../math/quaternion";
 import { Vector3 } from "../math/vector3";
 import { Positionable } from "../mixins/positionable";
-import { Rotatable } from "../mixins/rotatable";
+import { Orientable } from "../mixins/orientable";
 import { Moveable } from "../mixins/moveable";
 
 class _Camera {
   _position!: Vector3;
-  _rotation!: Quaternion;
+  _orientation!: Quaternion;
 
-  constructor(position: Vector3, rotation: Quaternion) {
+  constructor(position: Vector3, orientation: Quaternion = [0, 0, 0, 1]) {
     this._position = position;
-    this._rotation = rotation;
+    this._orientation = orientation;
   }
 }
 
-export const Camera = Moveable(Rotatable(Positionable(_Camera)));
+export const Camera = Moveable(Orientable(Positionable(_Camera)));
