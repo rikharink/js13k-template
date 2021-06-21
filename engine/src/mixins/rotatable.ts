@@ -9,6 +9,8 @@ export interface IRotatable extends IPositionable {
 
 export type Rotatable = Constructor<IRotatable>;
 
+const out: Quaternion = [0, 0, 0, 0];
+
 export function Rotatable<TBase extends Rotatable>(Base: TBase) {
   return class Rotatable extends Base {
     get rotation(): Quaternion {
@@ -19,15 +21,14 @@ export function Rotatable<TBase extends Rotatable>(Base: TBase) {
       this._rotation = rotation;
     }
 
-    private _out: Quaternion = [0, 0, 0, 0];
     get position(): Vector3 {
-      let p: Quaternion = [...this.position, 0];
+      let p: Quaternion = [...super.position, 0];
       multiply(
-        this._out,
-        multiply(this._out, conjugate(this._out, this._rotation), p),
+        out,
+        multiply(out, conjugate(out, this._rotation), p),
         this._rotation
       );
-      return [this._out[0], this._out[1], this._out[2]];
+      return [out[0], out[1], out[2]];
     }
   };
 }
