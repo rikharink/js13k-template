@@ -2,7 +2,7 @@ import karplusStrong from "./karplus-strong.awlet";
 import { SoundContext } from "../sound-context";
 import { loadAudioWorklet } from "../util";
 import { Frequency, Index, Milliseconds, NormalRange } from "../units";
-import { range } from "../../util";
+import { range } from "../../math/math";
 
 export async function loadPluckedString(ctx: SoundContext) {
   await loadAudioWorklet(ctx, karplusStrong);

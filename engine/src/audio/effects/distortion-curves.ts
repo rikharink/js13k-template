@@ -23,7 +23,7 @@ export type CurveType =
   | CUBIC
   | KICKER;
 
-export const blues = (amount: number, curve: Float32Array, n: number) => {
+export const blues = (amount: number, curve: Array<number>, n: number) => {
   const k = amount * 10;
 
   for (let i = 0, x: number; i <= n; ++i) {
@@ -32,7 +32,7 @@ export const blues = (amount: number, curve: Float32Array, n: number) => {
   }
 };
 
-export const sunshine = (amount: number, curve: Float32Array, n: number) => {
+export const sunshine = (amount: number, curve: Array<number>, n: number) => {
   const k = amount * 10;
 
   for (let i = 0, x, y: number; i <= n; ++i) {
@@ -43,7 +43,7 @@ export const sunshine = (amount: number, curve: Float32Array, n: number) => {
 };
 
 // A nonlinearity by Partice Tarrabia and Bram de Jong.
-export const driver = (amount: number, curve: Float32Array, n: number) => {
+export const driver = (amount: number, curve: Array<number>, n: number) => {
   const k = amount * 2000;
 
   for (let i = 0, x; i < n; ++i) {
@@ -53,7 +53,7 @@ export const driver = (amount: number, curve: Float32Array, n: number) => {
   }
 };
 
-export const sustained = (amount: number, curve: Float32Array, n: number) => {
+export const sustained = (amount: number, curve: Array<number>, n: number) => {
   const k = 1 - amount;
 
   for (let i = 0, x, y; i < n; ++i) {
@@ -64,7 +64,7 @@ export const sustained = (amount: number, curve: Float32Array, n: number) => {
 };
 
 // Arctangent nonlinearity.
-export const arch = (amount: number, curve: Float32Array, n: number) => {
+export const arch = (amount: number, curve: Array<number>, n: number) => {
   const k = Math.max(amount, 0.01) * 100;
 
   for (let i = 0, x; i < n; ++i) {
@@ -74,14 +74,14 @@ export const arch = (amount: number, curve: Float32Array, n: number) => {
 };
 
 // A cubic nonlinearity, soft-clip, input range: [-1, 1]
-export const cubic = (curve: Float32Array, n: number) => {
+export const cubic = (curve: Array<number>, n: number) => {
   for (let i = 0, x; i < n; ++i) {
     x = (i * 2) / n - 1;
     curve[i] = 1.5 * x - 0.5 * Math.pow(x, 3);
   }
 };
 
-export const kicker = (amount: number, curve: Float32Array, n: number) => {
+export const kicker = (amount: number, curve: Array<number>, n: number) => {
   const deg = Math.PI / 180;
   for (let i = 0; i < n; ++i) {
     const x = (i * 2) / n - 1;
@@ -94,7 +94,7 @@ export function makeDistortionCurve(
   n: number,
   type: CurveType
 ) {
-  var curve = new Float32Array(n);
+  var curve = new Array<number>(n);
   switch (type) {
     case BLUES:
       blues(amount, curve, n);

@@ -56,8 +56,12 @@ export function getDie(rand: Random, max: number): Random {
   return () => getRandomInt(rand, 1, max);
 }
 
-export function shuffle<T>(rand: Random, arr: T[]): void {
+export function shuffle<T>(rand: Random, arr: Array<T>): void {
   for (let i = 0; i < arr.length - 2; i++) {
     swap(arr, i, getRandomInt(rand, i, arr.length - 1));
   }
+}
+
+export function getRandomElement<T>(rand: Random, arr: Array<T>): T {
+  return arr[getRandomInt(rand, 0, arr.length)];
 }

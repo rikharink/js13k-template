@@ -21,7 +21,7 @@ registerProcessor(
 
     constructor(options) {
       super(options);
-      this.delayBuffer = new Float32Array(sampleRate);
+      this.delayBuffer = new Array(sampleRate);
     }
 
     getParameter(parameter, index) {
