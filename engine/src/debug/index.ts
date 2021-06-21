@@ -4,7 +4,7 @@ import {
   RGBA,
   TEXTURE_2D,
   UNSIGNED_BYTE,
-} from "../gl/constants";
+} from "../rendering/gl-constants";
 
 type DebugUpdateFn = (deltaTime: number) => void;
 
@@ -35,41 +35,4 @@ export function getDebugInfoUpdater(seed: string): DebugUpdateFn {
   };
 }
 
-export function createImageFromTexture(
-  ctx: WebGL2RenderingContext,
-  texture: WebGLTexture,
-  width: number,
-  height: number
-): HTMLImageElement {
-  // Create a framebuffer backed by the texture
-  let framebuffer = ctx.createFramebuffer();
-  ctx.bindFramebuffer(FRAMEBUFFER, framebuffer);
-  ctx.framebufferTexture2D(
-    FRAMEBUFFER,
-    COLOR_ATTACHMENT0,
-    TEXTURE_2D,
-    texture,
-    0
-  );
 
-  // Read the contents of the framebuffer
-  let data = new Uint8Array(width * height * 4);
-  ctx.readPixels(0, 0, width, height, RGBA, UNSIGNED_BYTE, data);
-
-  ctx.deleteFramebuffer(framebuffer);
-
-  // Create a 2D canvas to store the result
-  let canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  let context = canvas.getContext("2d")!;
-
-  // Copy the pixels to a 2D canvas
-  let imageData = context.createImageData(width, height);
-  imageData.data.set(data);
-  context.putImageData(imageData, 0, 0);
-
-  let img = new Image();
-  img.src = canvas.toDataURL();
-  return img;
-}

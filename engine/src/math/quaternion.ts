@@ -127,9 +127,9 @@ export function from_axis(out: Quaternion, axis: Vector3, angle: number) {
 }
 
 export const rotation_to = (function () {
-  let tmpvec3 = <Vector3>[0, 0, 0];
-  let xUnitVec3 = <Vector3>[1, 0, 0];
-  let yUnitVec3 = <Vector3>[0, 1, 0];
+  let tmpvec3: Vector3 = [0, 0, 0];
+  let xUnitVec3: Vector3 = [1, 0, 0];
+  let yUnitVec3: Vector3 = [0, 1, 0];
 
   return function (out: Quaternion, a: Vector3, b: Vector3) {
     let d = dot(a, b);

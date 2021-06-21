@@ -148,3 +148,24 @@ export function lerp(out: Vector3, a: Vector3, b: Vector3, t: number) {
   out[2] = az + t * (b[2] - az);
   return out;
 }
+
+const _a: Vector3 = [0, 0, 0];
+const _b: Vector3 = [0, 0, 0];
+const _c: Vector3 = [0, 0, 0];
+const _d: Vector3 = [0, 0, 0];
+const _e: Vector3 = [0, 0, 0];
+export function bezier(
+  out: Vector3,
+  p0: Vector3,
+  p1: Vector3,
+  p2: Vector3,
+  p3: Vector3,
+  t: number
+): void {
+  lerp(_a, p0, p1, t);
+  lerp(_b, p1, p2, t);
+  lerp(_c, p2, p3, t);
+  lerp(_d, _a, _b, t);
+  lerp(_e, _b, _c, t);
+  lerp(out, _d, _e, t);
+}
