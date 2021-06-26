@@ -1,26 +1,21 @@
 import { UUIDV4 } from "../util";
 
-type NodeId = UUIDV4;
+export type Location = UUIDV4;
 
-export interface Node<T> {
-    id: NodeId;
-    value: T;
-}
+export abstract class Graph {
+    private _nodes: Array<Location>;
+    private _edges: Map<Location, Array<Location>>;
 
-export abstract class Graph<T> {
-    private _nodes: Array<Node<T>>;
-    private _edges: Map<Node<T>, Array<Node<T>>>;
-
-    constructor(nodes: Array<Node<T>>, edges: Map<Node<T>, Array<Node<T>>>) {
+    constructor(nodes: Array<Location>, edges: Map<Location, Array<Location>>) {
         this._nodes = nodes;
         this._edges = edges;
     }
 
-    public neighbors(node: Node<T>): Array<Node<T>> {
+    public neighbors(node: Location): Array<Location> {
         return this._edges.get(node) || [];
     }
 }
 
-export interface WeightedGraph<T> extends Graph<T> {
-    cost: (from: Node<T>, to: Node<T>) => number;
+export interface WeightedGraph extends Graph {
+    cost: (from: Location, to: Location) => number;
 }

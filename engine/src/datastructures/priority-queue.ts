@@ -6,7 +6,7 @@ type PriorityNode<T> = {
     value: T;
 };
 
-export class PriorityQueue<T extends { id: UUIDV4 }> {
+export class PriorityQueue<T> {
     private _heap: Array<PriorityNode<T>> = [];
 
     public isEmpty(): boolean {
@@ -28,16 +28,6 @@ export class PriorityQueue<T extends { id: UUIDV4 }> {
     public insert(ele: T, priority: number) {
         this._heap.push({ priority: priority, value: ele });
         this.rebalance();
-    }
-
-    public insertOrUpdate(ele: T, priority: number) {
-        const e = this._heap.find((e) => e.value.id === ele.id);
-        if (e) {
-            e.priority = priority;
-            this.rebalance();
-        } else {
-            this.insert(ele, priority);
-        }
     }
 
     public pop(): T | null {

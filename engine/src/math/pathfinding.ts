@@ -1,11 +1,11 @@
 import { PriorityQueue } from "../datastructures/priority-queue";
-import { Node, WeightedGraph } from "../datastructures/graph";
+import {  Location, WeightedGraph } from "../datastructures/graph";
 
-type RouteMap<T> = Map<Node<T>, Node<T> | null>;
-
-export function reconstructPath<T>(cameFrom: RouteMap<T>, from: Node<T>, to: Node<T>): Array<Node<T>> {
+type RouteMap = Map<Location, Location | null>;
+type Path = Array<Location>;
+export function reconstructPath<T>(cameFrom: RouteMap, from: Location, to: Location): Path {
     let current = to;
-    let path = new Array<Node<T>>();
+    let path = new Array<Location>();
     while (current !== from) {
         path.push(current);
         current = cameFrom.get(current)!;
@@ -15,20 +15,20 @@ export function reconstructPath<T>(cameFrom: RouteMap<T>, from: Node<T>, to: Nod
     return path;
 }
 
-export function dijkstra<T>(graph: WeightedGraph<T>, from: Node<T>, to: Node<T>): Array<Node<T>> | null {
-    return aStar(graph, from, to, (_n, _g) => 0);
+export function dijkstra<T>(graph: WeightedGraph, from: Location, to: Location): Path | null {
+    return astar(graph, from, to, (_n, _g) => 0);
 }
 
-export function aStar<T>(graph: WeightedGraph<T>, from: Node<T>, to: Node<T>, h: (from: Node<T>, to: Node<T>) => number): Array<Node<T>> | null {
-    let frontier = new PriorityQueue<Node<T>>();
+export function astar<T>(graph: WeightedGraph, from: Location, to: Location, h: (from: Location, to: Location) => number): Path | null {
+    let frontier = new PriorityQueue<Location>();
     frontier.insert(from, 0);
-    let cameFrom = new Map<Node<T>, Node<T> | null>();
-    let currentCost = new Map<Node<T>, number>();
+    let cameFrom = new Map<Location, Location | null>();
+    let currentCost = new Map<Location, number>();
     cameFrom.set(from, null);
     currentCost.set(from, 0);
     while (!frontier.isEmpty()) {
         let current = frontier.pop()!;
-        if (current.id === to.id) {
+        if (current === to) {
             return reconstructPath(cameFrom, from, to);
         }
         for (let next of graph.neighbors(current)) {
