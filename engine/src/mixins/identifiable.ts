@@ -12,7 +12,7 @@ export function Identifiable<TBase extends Identifiable>(Base: TBase) {
       super();
       this._id = uuidv4();
     }
-    get id(): string {
+    public get id(): string {
       return this._id;
     }
   };

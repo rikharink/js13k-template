@@ -1,12 +1,12 @@
 import { Identifiable } from "../mixins/identifiable";
-import { swap } from "../util";
+import { swap, UUIDV4 } from "../util";
 
 type PriorityNode<T> = {
     priority: number;
     value: T;
 };
 
-export class PriorityQueue<T extends Identifiable> {
+export class PriorityQueue<T extends { id: UUIDV4 }> {
     private _heap: Array<PriorityNode<T>> = [];
 
     public isEmpty(): boolean {
@@ -21,18 +21,16 @@ export class PriorityQueue<T extends Identifiable> {
         return this._heap.length;
     }
 
+    public contains(ele: T): boolean {
+        return this._heap.findIndex((e) => e.value.id === ele.id) !== -1;
+    }
+
     public insert(ele: T, priority: number) {
         this._heap.push({ priority: priority, value: ele });
         this.rebalance();
     }
 
-    public contains(ele: T): boolean {
-        //@ts-ignore
-        return this._heap.findIndex((e) => e.value.id === ele.id) !== -1;
-    }
-
     public insertOrUpdate(ele: T, priority: number) {
-        //@ts-ignore
         const e = this._heap.find((e) => e.value.id === ele.id);
         if (e) {
             e.priority = priority;
